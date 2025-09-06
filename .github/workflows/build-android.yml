@@ -1,0 +1,186 @@
+name: Build Android App
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+  release:
+    types: [created]
+
+jobs:
+  build-android-app:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for commit count
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: 'gradle'
+    
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Generate Gradle Wrapper jar if missing
+      working-directory: ./bdrow-android-client
+      run: |
+        set -euxo pipefail
+        mkdir -p gradle/wrapper
+        if [[ ! -f gradle/wrapper/gradle-wrapper.jar ]]; then
+          echo "Gradle wrapper jar not found. Generating with Gradle 8.2.1..."
+          TMP_DIR="$(mktemp -d)"
+          pushd "$TMP_DIR"
+          curl -sSL -o gradle.zip https://services.gradle.org/distributions/gradle-8.2.1-bin.zip
+          unzip -q gradle.zip
+          "${PWD}/gradle-8.2.1/bin/gradle" --version
+          # Run wrapper task in project root to generate wrapper files
+          "${PWD}/gradle-8.2.1/bin/gradle" -p "$GITHUB_WORKSPACE/bdrow-android-client" wrapper --gradle-version 8.2.1 --no-daemon --stacktrace
+          popd
+        fi
+    
+    - name: Update version based on commit
+      working-directory: ./bdrow-android-client
+      run: |
+        # Get current version from properties file
+        if [ -f version.properties ]; then
+          VERSION_CODE=$(grep VERSION_CODE version.properties | cut -d'=' -f2)
+          VERSION_NAME=$(grep VERSION_NAME version.properties | cut -d'=' -f2)
+        else
+          VERSION_CODE=1
+          VERSION_NAME="1.0.0"
+        fi
+        
+        # Auto-increment version for each push
+        NEW_VERSION_CODE=$((VERSION_CODE + 1))
+        
+        # Parse commit message for version bump type
+        COMMIT_MSG="$(git log -1 --pretty=%B)"
+        if [[ "$COMMIT_MSG" == *"BREAKING CHANGE"* ]] || [[ "$COMMIT_MSG" == *"major:"* ]]; then
+          # Major version bump (2.0.0 -> 3.0.0)
+          VERSION_NAME=$(echo $VERSION_NAME | awk -F. '{print $1+1".0.0"}')
+        elif [[ "$COMMIT_MSG" == *"feat:"* ]] || [[ "$COMMIT_MSG" == *"feature:"* ]]; then
+          # Minor version bump (1.2.0 -> 1.3.0)
+          VERSION_NAME=$(echo $VERSION_NAME | awk -F. '{print $1"."$2+1".0"}')
+        else
+          # Patch version bump (1.2.3 -> 1.2.4)
+          VERSION_NAME=$(echo $VERSION_NAME | awk -F. '{print $1"."$2"."$3+1}')
+        fi
+        
+        # Update version.properties
+        echo "# Version properties" > version.properties
+        echo "# Auto-updated by GitHub Actions" >> version.properties
+        echo "VERSION_CODE=$NEW_VERSION_CODE" >> version.properties
+        echo "VERSION_NAME=$VERSION_NAME" >> version.properties
+        
+        echo "Updated version to $VERSION_NAME (Code: $NEW_VERSION_CODE)"
+    
+    - name: Grant execute permission for gradlew
+      working-directory: ./bdrow-android-client
+      run: chmod +x gradlew
+    
+    - name: Setup keystore
+      run: |
+        mkdir -p ~/.android
+        # Check if KEYSTORE_BASE64 secret exists
+        if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+          echo "Using fixed keystore from GitHub Secrets"
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > ~/.android/debug.keystore
+        else
+          echo "Using repository keystore file as fallback"
+          # Fallback to repository keystore if secret not set
+          if [ -f ./bdrow-android-client/.github/keystore/debug.keystore ]; then
+            cp ./bdrow-android-client/.github/keystore/debug.keystore ~/.android/debug.keystore
+          else
+            echo "Generating new keystore (not recommended for production)"
+            keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
+        fi
+        # Verify keystore
+        keytool -list -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey | head -20
+    
+    - name: Build Debug APK
+      working-directory: ./bdrow-android-client
+      run: ./gradlew assembleDebug
+    
+    - name: Build Release APK
+      working-directory: ./bdrow-android-client
+      run: ./gradlew assembleRelease
+      continue-on-error: true  # Allow release build to fail if signing is not configured
+    
+    - name: Get version info
+      id: version
+      working-directory: ./bdrow-android-client
+      run: |
+        VERSION_NAME=$(grep VERSION_NAME version.properties | cut -d'=' -f2)
+        VERSION_CODE=$(grep VERSION_CODE version.properties | cut -d'=' -f2)
+        echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+        echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+    
+    - name: Upload Debug APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug-v${{ steps.version.outputs.version_name }}-${{ steps.version.outputs.version_code }}
+        path: bdrow-android-client/app/build/outputs/apk/debug/*.apk
+        retention-days: 30
+    
+    - name: Upload Release APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release-v${{ steps.version.outputs.version_name }}-${{ steps.version.outputs.version_code }}
+        path: bdrow-android-client/app/build/outputs/apk/release/*.apk
+        retention-days: 30
+    
+    # Create release with APKs when tag is pushed
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          bdrow-android-client/app/build/outputs/apk/debug/*.apk
+          bdrow-android-client/app/build/outputs/apk/release/*.apk
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    # Post build status as comment on PR
+    - name: Post PR comment with build status
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const debugApkPath = 'bdrow-android-client/app/build/outputs/apk/debug';
+          const files = fs.readdirSync(debugApkPath);
+          const apkFile = files.find(f => f.endsWith('.apk'));
+          
+          if (apkFile) {
+            const stats = fs.statSync(`${debugApkPath}/${apkFile}`);
+            const fileSizeMB = (stats.size / (1024 * 1024)).toFixed(2);
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ **Build Successful!**\n\n` +
+                    `📦 APK Size: ${fileSizeMB} MB\n` +
+                    `🔗 [Download APK from Artifacts](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\n` +
+                    `*Note: APKs will be available for 30 days*`
+            });
+          }

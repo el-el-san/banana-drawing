@@ -1,0 +1,69 @@
+name: Auto Version Update
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'bdrow-android-client/version.properties'
+      - '.github/workflows/auto-version.yml'
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+    
+    - name: Configure Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+    
+    - name: Update version
+      working-directory: ./bdrow-android-client
+      run: |
+        # Read current version
+        if [ -f version.properties ]; then
+          VERSION_CODE=$(grep VERSION_CODE version.properties | cut -d'=' -f2)
+          VERSION_NAME=$(grep VERSION_NAME version.properties | cut -d'=' -f2)
+        else
+          VERSION_CODE=0
+          VERSION_NAME="1.0.0"
+        fi
+        
+        # Increment version code
+        NEW_VERSION_CODE=$((VERSION_CODE + 1))
+        
+        # Parse commit message for semantic versioning
+        COMMIT_MSG="${{ github.event.head_commit.message }}"
+        if [[ "$COMMIT_MSG" == *"BREAKING CHANGE"* ]] || [[ "$COMMIT_MSG" == *"major:"* ]]; then
+          VERSION_NAME=$(echo $VERSION_NAME | awk -F. '{print $1+1".0.0"}')
+        elif [[ "$COMMIT_MSG" == *"feat:"* ]]; then
+          VERSION_NAME=$(echo $VERSION_NAME | awk -F. '{print $1"."$2+1".0"}')
+        elif [[ "$COMMIT_MSG" == *"fix:"* ]]; then
+          VERSION_NAME=$(echo $VERSION_NAME | awk -F. '{print $1"."$2"."$3+1}')
+        fi
+        
+        # Write new version
+        cat > version.properties << EOF
+# Version properties
+# Auto-updated by GitHub Actions
+VERSION_CODE=$NEW_VERSION_CODE
+VERSION_NAME=$VERSION_NAME
+EOF
+        
+        echo "::notice title=Version Updated::Version $VERSION_NAME (Build $NEW_VERSION_CODE)"
+    
+    - name: Commit and push if changed
+      run: |
+        if git diff --quiet; then
+          echo "No changes to commit"
+        else
+          git add bdrow-android-client/version.properties
+          git commit -m "chore: auto-update version [skip ci]"
+          git push
+        fi
