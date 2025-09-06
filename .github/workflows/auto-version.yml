@@ -7,6 +7,10 @@ on:
       - 'bdrow-android-client/version.properties'
       - '.github/workflows/auto-version.yml'
 
+permissions:
+  contents: write
+  actions: read
+
 jobs:
   update-version:
     runs-on: ubuntu-latest
@@ -17,6 +21,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 0
+        persist-credentials: true
     
     - name: Configure Git
       run: |
