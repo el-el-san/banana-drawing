@@ -1,6 +1,6 @@
 # Banana Drawing
 
-🍌 An Android application that generates AI-powered illustrations of bananas and cats
+🍌 An Android application that generates AI-powered illustrations 
 
 ## Overview
 
@@ -18,6 +18,13 @@ Native Android application built with Kotlin/Jetpack Compose.
 - 🤖 Image generation using Gemini API
 - 💾 Save generated images
 - 🎨 Aspect ratio-preserving image display
+- ⏱️ Interactive timeline system for image sequence management
+  - Timeline slider with position control (0-15 seconds)
+  - Image markers with drag-and-drop repositioning
+  - Playback controls (play/pause, reset, loop)
+  - Variable playback speed (0.5x, 1x, 2x)
+  - Individual image deletion with confirmation
+  - Clear all timeline functionality
 
 **Tech Stack:**
 - Kotlin + Jetpack Compose
@@ -25,8 +32,6 @@ Native Android application built with Kotlin/Jetpack Compose.
 - MVVM Architecture
 - Gemini API Integration
 - GitHub Actions CI/CD
-
-For details, see [bdrow-android-client/README.md](./bdrow-android-client/README.md).
 
 ## Build
 
@@ -41,14 +46,6 @@ git push origin v1.0.0
 ```
 
 Built APKs are available for download from GitHub Actions Artifacts and automatically published as GitHub Releases when tags are pushed.
-
-### Local Build
-
-For development with Android Studio:
-```bash
-cd bdrow-android-client
-./gradlew assembleDebug
-```
 
 ## CI/CD
 
@@ -84,6 +81,3 @@ cd bdrow
 
 MIT License - See [LICENSE](./LICENSE) for details.
 
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
