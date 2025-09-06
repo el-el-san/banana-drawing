@@ -1,0 +1,208 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Create Release with APK
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: 'gradle'
+    
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Generate Gradle Wrapper jar if missing
+      working-directory: ./bdrow-android-client
+      run: |
+        set -euxo pipefail
+        mkdir -p gradle/wrapper
+        if [[ ! -f gradle/wrapper/gradle-wrapper.jar ]]; then
+          echo "Gradle wrapper jar not found. Generating with Gradle 8.2.1..."
+          TMP_DIR="$(mktemp -d)"
+          pushd "$TMP_DIR"
+          curl -sSL -o gradle.zip https://services.gradle.org/distributions/gradle-8.2.1-bin.zip
+          unzip -q gradle.zip
+          "${PWD}/gradle-8.2.1/bin/gradle" --version
+          "${PWD}/gradle-8.2.1/bin/gradle" -p "$GITHUB_WORKSPACE/bdrow-android-client" wrapper --gradle-version 8.2.1 --no-daemon --stacktrace
+          popd
+        fi
+    
+    - name: Extract tag version
+      id: tag_version
+      run: |
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        VERSION_NAME=${TAG_NAME#v}
+        echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+        echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+    
+    - name: Update version for release
+      working-directory: ./bdrow-android-client
+      run: |
+        VERSION_NAME="${{ steps.tag_version.outputs.version_name }}"
+        
+        # Get current version code or start from 1
+        if [ -f version.properties ]; then
+          VERSION_CODE=$(grep VERSION_CODE version.properties | cut -d'=' -f2)
+        else
+          VERSION_CODE=1
+        fi
+        
+        # Use a high version code for releases (timestamp-based)
+        RELEASE_VERSION_CODE=$(date +%s)
+        
+        # Update version.properties for release
+        echo "# Release version properties" > version.properties
+        echo "# Updated for release ${{ steps.tag_version.outputs.tag_name }}" >> version.properties
+        echo "VERSION_CODE=$RELEASE_VERSION_CODE" >> version.properties
+        echo "VERSION_NAME=$VERSION_NAME" >> version.properties
+        
+        echo "Release version: $VERSION_NAME (Code: $RELEASE_VERSION_CODE)"
+    
+    - name: Grant execute permission for gradlew
+      working-directory: ./bdrow-android-client
+      run: chmod +x gradlew
+    
+    - name: Setup release keystore
+      run: |
+        mkdir -p ~/.android
+        if [ -n "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ]; then
+          echo "Using release keystore from secrets"
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > ~/.android/release.keystore
+        elif [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+          echo "Using debug keystore from secrets for release"
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > ~/.android/debug.keystore
+        else
+          echo "No keystore configured, generating temporary one"
+          keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+        fi
+    
+    - name: Build Release APK
+      working-directory: ./bdrow-android-client
+      run: ./gradlew assembleRelease
+      env:
+        RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+        RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+    
+    - name: Build Debug APK (fallback)
+      working-directory: ./bdrow-android-client
+      run: ./gradlew assembleDebug
+      if: failure()
+    
+    - name: Prepare APK files
+      id: apk_files
+      run: |
+        cd bdrow-android-client/app/build/outputs/apk
+        
+        # Find APK files
+        RELEASE_APK=$(find release -name "*.apk" -type f 2>/dev/null | head -1 || echo "")
+        DEBUG_APK=$(find debug -name "*.apk" -type f 2>/dev/null | head -1 || echo "")
+        
+        # Rename APKs with version
+        VERSION_NAME="${{ steps.tag_version.outputs.version_name }}"
+        APK_FILES=""
+        
+        if [ -n "$RELEASE_APK" ] && [ -f "$RELEASE_APK" ]; then
+          NEW_RELEASE_NAME="banana-drawing-v${VERSION_NAME}-release.apk"
+          cp "$RELEASE_APK" "$NEW_RELEASE_NAME"
+          APK_FILES="$APK_FILES$PWD/$NEW_RELEASE_NAME"$'\n'
+          echo "release_apk=$PWD/$NEW_RELEASE_NAME" >> $GITHUB_OUTPUT
+        fi
+        
+        if [ -n "$DEBUG_APK" ] && [ -f "$DEBUG_APK" ]; then
+          NEW_DEBUG_NAME="banana-drawing-v${VERSION_NAME}-debug.apk"
+          cp "$DEBUG_APK" "$NEW_DEBUG_NAME"
+          APK_FILES="$APK_FILES$PWD/$NEW_DEBUG_NAME"$'\n'
+          echo "debug_apk=$PWD/$NEW_DEBUG_NAME" >> $GITHUB_OUTPUT
+        fi
+        
+        # Save all APK files for upload
+        echo "apk_files<<EOF" >> $GITHUB_OUTPUT
+        echo "$APK_FILES" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+        ls -la
+    
+    - name: Generate Release Notes
+      id: release_notes
+      run: |
+        # Get commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 ${{ steps.tag_version.outputs.tag_name }}^^ 2>/dev/null || echo "")
+        
+        if [ -n "$LAST_TAG" ]; then
+          COMMITS=$(git log --pretty=format:"- %s (%an)" $LAST_TAG..${{ steps.tag_version.outputs.tag_name }})
+        else
+          COMMITS=$(git log --pretty=format:"- %s (%an)" --max-count=10)
+        fi
+        
+        # Create release notes
+        cat > release_notes.md << EOF
+        ## 🍌 Banana Drawing v${{ steps.tag_version.outputs.version_name }}
+        
+        ### 📱 Android APK Release
+        
+        This release includes:
+        - 🔄 Auto-generated APK builds
+        - 📦 Both debug and release variants (when available)
+        - 🎯 Version ${{ steps.tag_version.outputs.version_name }}
+        
+        ### 📋 Changes in this release:
+        $COMMITS
+        
+        ### 📥 Installation
+        1. Download the APK file from the assets below
+        2. Enable "Install from unknown sources" in your Android settings
+        3. Install the APK on your device
+        
+        ### 🔧 Requirements
+        - Android 7.0 (API level 24) or higher
+        - Gemini API key (configure in app settings)
+        
+        ---
+        🤖 *This release was automatically generated by GitHub Actions*
+        EOF
+        
+        echo "release_notes_file=release_notes.md" >> $GITHUB_OUTPUT
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.tag_version.outputs.tag_name }}
+        name: "Banana Drawing v${{ steps.tag_version.outputs.version_name }}"
+        body_path: release_notes.md
+        files: |
+          ${{ steps.apk_files.outputs.apk_files }}
+        draft: false
+        prerelease: false
+        make_latest: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Upload APK Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: "banana-drawing-apks-v${{ steps.tag_version.outputs.version_name }}"
+        path: |
+          bdrow-android-client/app/build/outputs/apk/**/*.apk
+        retention-days: 90

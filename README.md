@@ -1,50 +1,50 @@
 # Banana Drawing
 
-🍌 バナナと猫のイラストをAIで生成するAndroidアプリケーション
+🍌 An Android application that generates AI-powered illustrations of bananas and cats
 
-## 概要
+## Overview
 
-Banana Drawingは、画像とテキストプロンプトを組み合わせて、Google Gemini APIを使用してクリエイティブな画像を生成するAndroidアプリです。
+Banana Drawing is an Android app that combines images and text prompts to generate creative images using the Google Gemini API.
 
-## 主な機能
+## Features
 
 ### 📱 bdrow-android-client
-Androidネイティブアプリケーション。Kotlin/Jetpack Composeで実装されています。
+Native Android application built with Kotlin/Jetpack Compose.
 
-**主な機能:**
-- 📷 ギャラリーから画像を選択
-- ✏️ 赤ペンによる画像編集（描画・消しゴム機能）
-- 💬 テキストプロンプトの入力
-- 🤖 Gemini APIによる画像生成
-- 💾 生成画像の保存
-- 🎨 アスペクト比を保持した画像表示
+**Key Features:**
+- 📷 Select images from gallery
+- ✏️ Image editing with red pen (drawing & eraser tools)
+- 💬 Text prompt input
+- 🤖 Image generation using Gemini API
+- 💾 Save generated images
+- 🎨 Aspect ratio-preserving image display
 
-**技術スタック:**
+**Tech Stack:**
 - Kotlin + Jetpack Compose
 - Material Design 3
-- MVVM アーキテクチャ
-- Gemini API統合
+- MVVM Architecture
+- Gemini API Integration
 - GitHub Actions CI/CD
 
-詳細は [bdrow-android-client/README.md](./bdrow-android-client/README.md) を参照してください。
+For details, see [bdrow-android-client/README.md](./bdrow-android-client/README.md).
 
-## ビルド
+## Build
 
-### Android APKのビルド
+### Android APK Build
 
-GitHub Actionsで自動ビルドが設定されています：
+Automated builds are configured with GitHub Actions:
 
 ```bash
-# タグをプッシュしてリリースビルドを作成
+# Push a tag to create release build
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-ビルドされたAPKは、GitHub ActionsのArtifactsからダウンロード可能です。
+Built APKs are available for download from GitHub Actions Artifacts and automatically published as GitHub Releases when tags are pushed.
 
-### ローカルビルド
+### Local Build
 
-Android Studioでの開発：
+For development with Android Studio:
 ```bash
 cd bdrow-android-client
 ./gradlew assembleDebug
@@ -52,37 +52,38 @@ cd bdrow-android-client
 
 ## CI/CD
 
-GitHub Actionsワークフローが以下の処理を自動化しています：
+GitHub Actions workflows automate the following processes:
 
-1. **Android APKのビルド** - Debug/Releaseビルドの作成
-2. **自動テスト** - ユニットテストの実行
-3. **リリース作成** - タグプッシュ時に自動でGitHubリリースを作成
+1. **Android APK Build** - Creates Debug/Release builds
+2. **Automated Testing** - Runs unit tests
+3. **Release Creation** - Automatically creates GitHub releases when tags are pushed
+4. **Version Management** - Auto-increments version based on commit messages
 
-## 開発環境要件
+## Development Requirements
 
-- Android Studio Arctic Fox以降
+- Android Studio Arctic Fox or later
 - JDK 17
 - Android SDK 34
-- Kotlin 1.9.0以降
+- Kotlin 1.9.0 or later
 
-## セットアップ
+## Setup
 
-1. リポジトリをクローン
+1. Clone the repository
 ```bash
 git clone https://github.com/el-el-san/bdrow.git
 cd bdrow
 ```
 
-2. Gemini APIキーを取得
-   - [Google AI Studio](https://makersuite.google.com/app/apikey)でAPIキーを取得
-   - アプリ内の設定画面でAPIキーを入力
+2. Get Gemini API Key
+   - Obtain API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+   - Enter the API key in the app's settings screen
 
-3. Android Studioでプロジェクトを開く
+3. Open the project in Android Studio
 
-## ライセンス
+## License
 
-MIT License - 詳細は [LICENSE](./LICENSE) を参照してください。
+MIT License - See [LICENSE](./LICENSE) for details.
 
 ## Contributing
 
-プルリクエストを歓迎します。大きな変更の場合は、まずissueを開いて変更内容について議論してください。
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
