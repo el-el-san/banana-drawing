@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.example.bdrowclient.InputImage
 import com.example.bdrowclient.ui.theme.*
 
-// Bentoグリッドスタイルの画像グリッド
+// Bento grid-style image grid
 @Composable
 fun BentoImageGrid(
     images: List<InputImage>,
@@ -50,12 +50,12 @@ fun BentoImageGrid(
     )
     
     Column(modifier = modifier) {
-        // アシンメトリックなBentoグリッドレイアウト
+        // Asymmetric Bento grid layout
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 左側: 大きなメイン画像スロット
+            // Left side: Large main image slot
             BentoImageSlot(
                 index = 0,
                 image = images.getOrNull(0),
@@ -71,7 +71,7 @@ fun BentoImageGrid(
                 isLarge = true
             )
             
-            // 右側: 縦に2つの小さな画像スロット
+            // Right side: Two small image slots vertically
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -103,7 +103,7 @@ fun BentoImageGrid(
         
         Spacer(modifier = Modifier.height(12.dp))
         
-        // 下部: 横長の画像スロット
+        // Bottom: Wide image slot
         BentoImageSlot(
             index = 3,
             image = images.getOrNull(3),
@@ -216,7 +216,7 @@ private fun BentoImageSlot(
             }
         ) { targetImage ->
             if (targetImage != null) {
-                // 画像表示
+                // Image display
                 Box {
                     Image(
                         bitmap = targetImage.bitmap.asImageBitmap(),
@@ -225,7 +225,7 @@ private fun BentoImageSlot(
                         contentScale = ContentScale.Crop
                     )
                     
-                    // グラデーションオーバーレイ
+                    // Gradient overlay
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -241,7 +241,7 @@ private fun BentoImageSlot(
                             )
                     )
                     
-                    // 編集済みバッジ
+                    // Edited badge
                     AnimatedVisibility(
                         visible = targetImage.isEdited,
                         enter = scaleIn() + fadeIn(),
@@ -269,7 +269,7 @@ private fun BentoImageSlot(
                         }
                     }
                     
-                    // アクションボタン
+                    // Action buttons
                     Row(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
@@ -313,7 +313,7 @@ private fun BentoImageSlot(
                     }
                 }
             } else {
-                // 空のスロット
+                // Empty slot
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -353,10 +353,10 @@ private fun BentoImageSlot(
                     
                     Text(
                         text = when (index) {
-                            0 -> "メイン画像"
-                            1, 2 -> "サブ画像 ${index}"
-                            3 -> "横長画像"
-                            else -> "画像 ${index + 1}"
+                            0 -> "Main Image"
+                            1, 2 -> "Sub Image ${index}"
+                            3 -> "Wide Image"
+                            else -> "Image ${index + 1}"
                         },
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary
@@ -365,7 +365,7 @@ private fun BentoImageSlot(
                     if (isLarge || isWide) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "タップして追加",
+                            text = "Tap to Add",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )

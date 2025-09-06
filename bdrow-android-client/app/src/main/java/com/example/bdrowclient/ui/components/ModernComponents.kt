@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.unit.dp
 import com.example.bdrowclient.ui.theme.*
 
-// グラスモーフィズムカード
+// Glassmorphism card
 @Composable
 fun GlassmorphicCard(
     modifier: Modifier = Modifier,
@@ -91,7 +91,7 @@ fun GlassmorphicCard(
     }
 }
 
-// モダンなフローティングアクションボタン
+// Modern floating action button
 @Composable
 fun ModernFloatingButton(
     onClick: () -> Unit,
@@ -137,7 +137,7 @@ fun ModernFloatingButton(
     }
 }
 
-// グラデーションボタン
+// Gradient button
 @Composable
 fun GradientButton(
     onClick: () -> Unit,
@@ -196,7 +196,7 @@ fun GradientButton(
     }
 }
 
-// パルスアニメーション付きローディング
+// Loading with pulse animation
 @Composable
 fun PulsingLoader(
     modifier: Modifier = Modifier
@@ -240,7 +240,7 @@ fun PulsingLoader(
     }
 }
 
-// ソフトシャドウ付きカード
+// Card with soft shadow
 @Composable
 fun SoftShadowCard(
     modifier: Modifier = Modifier,
@@ -268,7 +268,7 @@ fun SoftShadowCard(
     }
 }
 
-// アニメーション付きチップ
+// Animated chip
 @Composable
 fun AnimatedChip(
     selected: Boolean,

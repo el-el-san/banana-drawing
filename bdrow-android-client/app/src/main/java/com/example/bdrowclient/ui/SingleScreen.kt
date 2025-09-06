@@ -87,7 +87,7 @@ fun SingleScreen(viewModel: MainViewModel) {
                     titleContentColor = MaterialTheme.colorScheme.primary
                 ),
                 actions = {
-                    // API Key設定ボタン
+                    // API Key settings button
                     ModernFloatingButton(
                         onClick = { showApiKeyDialog = true },
                         modifier = Modifier.size(48.dp),
@@ -110,7 +110,7 @@ fun SingleScreen(viewModel: MainViewModel) {
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // 出力画像セクション
+            // Output image section
             GlassmorphicCard(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -125,27 +125,27 @@ fun SingleScreen(viewModel: MainViewModel) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "出力画像",
+                            text = "Output Image",
                             style = MaterialTheme.typography.titleMedium
                         )
                         if (state.resultImageBitmap != null || state.timelineImages.isNotEmpty()) {
                             Row {
-                                // タイムラインに追加ボタン
+                                // Add to timeline button
                                 if (state.resultImageBitmap != null) {
                                     IconButton(
                                         onClick = {
                                             viewModel.addImageToTimeline()
                                             scope.launch {
                                                 snackbarHostState.showSnackbar(
-                                                    "${state.currentTimePosition}秒に画像を追加しました"
+                                                    "Image added at ${state.currentTimePosition}s"
                                                 )
                                             }
                                         }
                                     ) {
-                                        Icon(Icons.Default.AddPhotoAlternate, contentDescription = "タイムラインに追加")
+                                        Icon(Icons.Default.AddPhotoAlternate, contentDescription = "Add to Timeline")
                                     }
                                 }
-                                // 保存ボタン
+                                // Save button
                                 IconButton(
                                     onClick = {
                                         scope.launch {
@@ -153,20 +153,20 @@ fun SingleScreen(viewModel: MainViewModel) {
                                             bitmap?.let {
                                                 val success = saveImage(context, it)
                                                 snackbarHostState.showSnackbar(
-                                                    if (success) "画像を保存しました"
-                                                    else "保存に失敗しました"
+                                                    if (success) "Image saved"
+                                                    else "Failed to save"
                                                 )
                                             }
                                         }
                                     }
                                 ) {
-                                    Icon(Icons.Default.Save, contentDescription = "保存")
+                                    Icon(Icons.Default.Save, contentDescription = "Save")
                                 }
                             }
                         }
                     }
                     
-                    // タイムラインコントロール（常に表示）
+                    // Timeline control (always visible)
                     TimelineSlider(
                         currentPosition = state.currentTimePosition,
                         timelineImages = state.timelineImages,
@@ -192,7 +192,7 @@ fun SingleScreen(viewModel: MainViewModel) {
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     
-                    // 表示する画像の選択ロジック - 生成結果を優先、タイムライン操作時のみタイムライン画像
+                    // Display image selection logic - prioritize generation results, timeline images only during timeline operation
                     val displayImage = if (state.showTimelineImage) {
                         viewModel.getCurrentTimelineImage() ?: state.resultImageBitmap
                     } else {
@@ -211,7 +211,7 @@ fun SingleScreen(viewModel: MainViewModel) {
                     } else if (displayImage != null) {
                         Image(
                             bitmap = displayImage.asImageBitmap(),
-                            contentDescription = "結果画像",
+                            contentDescription = "Result Image",
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .heightIn(max = 300.dp),
@@ -225,11 +225,11 @@ fun SingleScreen(viewModel: MainViewModel) {
                                 .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("処理結果がここに表示されます")
+                            Text("Processing results will be displayed here")
                         }
                     }
                     
-                    // 結果テキスト
+                    // Result text
                     if (state.resultText != null) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
@@ -240,7 +240,7 @@ fun SingleScreen(viewModel: MainViewModel) {
                 }
             }
             
-            // 入力画像セクション（複数画像対応）
+            // Input image section (multiple images supported)
             GlassmorphicCard(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -255,7 +255,7 @@ fun SingleScreen(viewModel: MainViewModel) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "入力画像 (${state.inputImages.size}/4)",
+                            text = "Input Images (${state.inputImages.size}/4)",
                             style = MaterialTheme.typography.titleMedium
                         )
                         Row {
@@ -263,7 +263,7 @@ fun SingleScreen(viewModel: MainViewModel) {
                                 IconButton(
                                     onClick = { viewModel.clearAllImages() }
                                 ) {
-                                    Icon(Icons.Default.Delete, contentDescription = "全削除")
+                                    Icon(Icons.Default.Delete, contentDescription = "Delete All")
                                 }
                             }
                         }
@@ -287,7 +287,7 @@ fun SingleScreen(viewModel: MainViewModel) {
                 }
             }
             
-            // テキスト入力と送信
+            // Text input and submit
             GlassmorphicCard(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -299,8 +299,8 @@ fun SingleScreen(viewModel: MainViewModel) {
                     OutlinedTextField(
                         value = inputText,
                         onValueChange = { inputText = it },
-                        label = { Text("プロンプト") },
-                        placeholder = { Text("例: 目を閉じた笑顔") },
+                        label = { Text("Prompt") },
+                        placeholder = { Text("Example: smiling with closed eyes") },
                         modifier = Modifier.fillMaxWidth(),
                         maxLines = 3
                     )
@@ -320,7 +320,7 @@ fun SingleScreen(viewModel: MainViewModel) {
                                 viewModel.setInputText(inputText)
                                 viewModel.sendToGemini()
                             },
-                            text = "✨ Geminiに送信",
+                            text = "✨ Send to Gemini",
                             modifier = Modifier.fillMaxWidth(),
                             enabled = state.inputImages.isNotEmpty() || inputText.isNotEmpty()
                         )
@@ -328,7 +328,7 @@ fun SingleScreen(viewModel: MainViewModel) {
                 }
             }
             
-            // デバッグ情報
+            // Debug information
             AnimatedVisibility(
                 visible = state.debugInfo != null,
                 enter = fadeIn() + expandVertically(),
@@ -349,7 +349,7 @@ fun SingleScreen(viewModel: MainViewModel) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "🐛 デバッグ情報",
+                                    text = "🐛 Debug Information",
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -368,7 +368,7 @@ fun SingleScreen(viewModel: MainViewModel) {
                 }
             }
             
-            // エラー表示
+            // Error display
             AnimatedVisibility(
                 visible = state.errorMessage != null,
                 enter = fadeIn() + slideInVertically(),
@@ -404,7 +404,7 @@ fun SingleScreen(viewModel: MainViewModel) {
         }
     }
     
-    // APIキー設定ダイアログ
+    // API key setup dialog
     if (showApiKeyDialog) {
         ApiKeyDialog(
             onDismiss = { showApiKeyDialog = false },
@@ -412,14 +412,14 @@ fun SingleScreen(viewModel: MainViewModel) {
                 viewModel.saveApiKey(apiKey)
                 showApiKeyDialog = false
                 scope.launch {
-                    snackbarHostState.showSnackbar("APIキーを保存しました")
+                    snackbarHostState.showSnackbar("API key saved")
                 }
             },
             currentApiKey = viewModel.getApiKey()
         )
     }
     
-    // 画像編集ダイアログ
+    // Image edit dialog
     editingImageIndex?.let { index ->
         state.inputImages.getOrNull(index)?.let { image ->
             ModernImageEditDialog(
@@ -433,7 +433,7 @@ fun SingleScreen(viewModel: MainViewModel) {
         }
     }
     
-    // 再生処理
+    // Playback processing
     LaunchedEffect(state.isPlaying) {
         if (state.isPlaying && state.timelineImages.isNotEmpty()) {
             while (state.isPlaying) {
@@ -465,18 +465,18 @@ fun ApiKeyDialog(
     
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Gemini APIキー設定") },
+        title = { Text("Gemini API Key Setup") },
         text = {
             Column {
                 Text(
-                    text = "Gemini APIキーを入力してください",
+                    text = "Please enter your Gemini API key",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = apiKey,
                     onValueChange = { apiKey = it },
-                    label = { Text("APIキー") },
+                    label = { Text("API Key") },
                     placeholder = { Text("AIza...") },
                     visualTransformation = if (showApiKey) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
@@ -497,12 +497,12 @@ fun ApiKeyDialog(
                 onClick = { onSave(apiKey) },
                 enabled = apiKey.isNotBlank()
             ) {
-                Text("保存")
+                Text("Save")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("キャンセル")
+                Text("Cancel")
             }
         }
     )

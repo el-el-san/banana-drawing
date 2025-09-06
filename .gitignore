@@ -142,3 +142,6 @@ codex-android-client/codex-android-lib/Cargo.lock
 # Android Studio
 *.iml
 codex-android-client/.idea/
+
+# Documentation files
+app.md

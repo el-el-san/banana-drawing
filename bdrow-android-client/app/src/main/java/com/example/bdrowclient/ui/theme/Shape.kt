@@ -13,7 +13,7 @@ val ModernShapes = Shapes(
     extraLarge = RoundedCornerShape(32.dp)
 )
 
-// カスタムシェイプ
+// Custom shapes
 val CardShape = RoundedCornerShape(20.dp)
 val ButtonShape = RoundedCornerShape(16.dp)
 val DialogShape = RoundedCornerShape(28.dp)

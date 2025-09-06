@@ -30,7 +30,7 @@ object GeminiApiClient {
         }
 
         val okHttpClient = okhttp3.OkHttpClient.Builder()
-            // タイムアウトを60秒に設定（画像生成には時間がかかるため）
+            // Set timeout to 60 seconds (image generation takes time)
             .connectTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
             .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
             .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)

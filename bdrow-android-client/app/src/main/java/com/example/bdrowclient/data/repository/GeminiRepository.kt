@@ -51,7 +51,7 @@ class GeminiRepository(private val context: Context) {
             
             if (apiKey == null) {
                 return@withContext ProcessResult(
-                    text = "APIキーが設定されていません",
+                    text = "API key is not configured",
                     processedImage = images.firstOrNull()
                 )
             }
@@ -59,7 +59,7 @@ class GeminiRepository(private val context: Context) {
             if (images.isNotEmpty()) {
                 // Multiple images + Text processing with two-stage enhancement
                 processMultipleImagesWithTextEnhanced(images, text, apiKey)
-            } else if (text.contains("画像を生成") || text.contains("画像を作成") || text.contains("イメージを生成")) {
+            } else if (text.contains("generate image") || text.contains("create image") || text.contains("make image")) {
                 // Image generation request
                 generateImage(text, apiKey)
             } else {
@@ -68,7 +68,7 @@ class GeminiRepository(private val context: Context) {
             }
         } catch (e: Exception) {
             ProcessResult(
-                text = "処理エラー: ${e.message}",
+                text = "Processing error: ${e.message}",
                 processedImage = images.firstOrNull()
             )
         }
@@ -84,7 +84,7 @@ class GeminiRepository(private val context: Context) {
             
             if (apiKey == null) {
                 return@withContext ProcessResult(
-                    text = "APIキーが設定されていません",
+                    text = "API key is not configured",
                     processedImage = image
                 )
             }
@@ -92,7 +92,7 @@ class GeminiRepository(private val context: Context) {
             if (image != null) {
                 // Image + Text processing with two-stage enhancement
                 processImageWithTextEnhanced(image, text, apiKey)
-            } else if (text.contains("画像を生成") || text.contains("画像を作成") || text.contains("イメージを生成")) {
+            } else if (text.contains("generate image") || text.contains("create image") || text.contains("make image")) {
                 // Image generation request
                 generateImage(text, apiKey)
             } else {
@@ -101,7 +101,7 @@ class GeminiRepository(private val context: Context) {
             }
         } catch (e: Exception) {
             ProcessResult(
-                text = "処理エラー: ${e.message}",
+                text = "Processing error: ${e.message}",
                 processedImage = image
             )
         }
@@ -234,9 +234,9 @@ class GeminiRepository(private val context: Context) {
                 }
                 
                 val resultText = when {
-                    generatedImage != null -> "画像を生成しました\n元のプロンプト: $text\n英語: $translatedPrompt"
+                    generatedImage != null -> "Image generated successfully\nOriginal prompt: $text\nEnglish: $translatedPrompt"
                     responseText != null -> responseText
-                    else -> "処理が完了しました"
+                    else -> "Processing completed"
                 }
                 
                 ProcessResult(
@@ -246,7 +246,7 @@ class GeminiRepository(private val context: Context) {
                 )
             } else {
                 ProcessResult(
-                    text = response.error?.message ?: "APIからの応答が空でした",
+                    text = response.error?.message ?: "API response was empty",
                     processedImage = images.firstOrNull(),
                     debugInfo = debugBuilder.toString()
                 )
@@ -254,7 +254,7 @@ class GeminiRepository(private val context: Context) {
         } catch (e: Exception) {
             android.util.Log.e("GeminiRepo", "API call failed", e)
             ProcessResult(
-                text = "APIエラー: ${e.message}",
+                text = "API error: ${e.message}",
                 processedImage = images.firstOrNull(),
                 debugInfo = debugBuilder.toString() + "\n[Exception]\n${e.message}"
             )
@@ -340,13 +340,13 @@ class GeminiRepository(private val context: Context) {
                 }
                 
                 ProcessResult(
-                    text = responseText ?: "処理が完了しました",
+                    text = responseText ?: "Processing completed",
                     processedImage = generatedImage ?: images.firstOrNull(),
                     debugInfo = debugBuilder.toString()
                 )
             } else {
                 ProcessResult(
-                    text = response.error?.message ?: "APIからの応答が空でした",
+                    text = response.error?.message ?: "API response was empty",
                     processedImage = images.firstOrNull(),
                     debugInfo = debugBuilder.toString()
                 )
@@ -354,7 +354,7 @@ class GeminiRepository(private val context: Context) {
         } catch (e: Exception) {
             android.util.Log.e("GeminiRepo", "API call failed", e)
             ProcessResult(
-                text = "APIエラー: ${e.message}",
+                text = "API error: ${e.message}",
                 processedImage = images.firstOrNull(),
                 debugInfo = "[Exception]\n${e.message}"
             )
@@ -440,15 +440,15 @@ class GeminiRepository(private val context: Context) {
                 debugBuilder.appendLine("Has Text: ${responseText != null}")
                 debugBuilder.appendLine("Has Generated Image: ${generatedImage != null}")
                 
-                // 画像が生成された場合は適切なメッセージを設定
+                // Set appropriate message when image is generated
                 val resultText = when {
                     responseText != null -> responseText
                     generatedImage != null && generatedImage != image -> {
-                        "画像を生成しました\n" +
-                        "プロンプト: $text\n" +
-                        "サイズ: ${generatedImage!!.width}x${generatedImage!!.height}"
+                        "Image generated successfully\n" +
+                        "Prompt: $text\n" +
+                        "Size: ${generatedImage!!.width}x${generatedImage!!.height}"
                     }
-                    else -> "応答がありませんでした"
+                    else -> "No response received"
                 }
                 
                 ProcessResult(
@@ -462,7 +462,7 @@ class GeminiRepository(private val context: Context) {
                 debugBuilder.appendLine("Error: ${response.error?.message}")
                 
                 ProcessResult(
-                    text = response.error?.message ?: "APIからの応答が空でした",
+                    text = response.error?.message ?: "API response was empty",
                     processedImage = image,
                     debugInfo = debugBuilder.toString()
                 )
@@ -471,7 +471,7 @@ class GeminiRepository(private val context: Context) {
             android.util.Log.e("GeminiRepo", "API call failed", e)
             val debugInfo = "[Exception]\n${e.javaClass.simpleName}: ${e.message}\n\nStackTrace:\n${e.stackTrace.take(5).joinToString("\n")}"
             ProcessResult(
-                text = "APIエラー: ${e.message}",
+                text = "API error: ${e.message}",
                 processedImage = image,
                 debugInfo = debugInfo
             )
@@ -529,18 +529,18 @@ class GeminiRepository(private val context: Context) {
                 }
                 
                 return ProcessResult(
-                    text = responseText ?: "画像を生成しました",
+                    text = responseText ?: "Image generated successfully",
                     processedImage = generatedImage
                 )
             } else {
                 return ProcessResult(
-                    text = response.error?.message ?: "画像生成に失敗しました",
+                    text = response.error?.message ?: "Image generation failed",
                     processedImage = null
                 )
             }
         } catch (e: Exception) {
             // Fallback to text generation if image generation fails
-            return processTextOnly("画像生成エラー: $prompt\n${e.message}", apiKey)
+            return processTextOnly("Image generation error: $prompt\n${e.message}", apiKey)
         }
     }
     
@@ -587,15 +587,15 @@ class GeminiRepository(private val context: Context) {
                     }
                 }
                 
-                // テキストまたは画像生成の結果を返す
+                // Return text or image generation result
                 val resultText = when {
                     responseText != null -> responseText
                     generatedImage != null -> {
-                        "画像を生成しました\n" +
-                        "プロンプト: $text\n" +
-                        "サイズ: ${generatedImage!!.width}x${generatedImage!!.height}"
+                        "Image generated successfully\n" +
+                        "Prompt: $text\n" +
+                        "Size: ${generatedImage!!.width}x${generatedImage!!.height}"
                     }
-                    else -> "応答がありませんでした"
+                    else -> "No response received"
                 }
                 
                 ProcessResult(
@@ -604,14 +604,14 @@ class GeminiRepository(private val context: Context) {
                 )
             } else {
                 ProcessResult(
-                    text = response.error?.message ?: "APIからの応答が空でした",
+                    text = response.error?.message ?: "API response was empty",
                     processedImage = null
                 )
             }
         } catch (e: Exception) {
             android.util.Log.e("GeminiRepo", "API call failed", e)
             ProcessResult(
-                text = "APIエラー: ${e.message}",
+                text = "API error: ${e.message}",
                 processedImage = null
             )
         }

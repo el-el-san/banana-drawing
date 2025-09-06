@@ -61,7 +61,7 @@ fun ModernImageEditDialog(
     var showColorPicker by remember { mutableStateOf(false) }
     var selectedColor by remember { mutableStateOf(HotPink) }
     
-    // テキストオーバーレイ用の状態
+    // Text overlay state
     var textOverlays by remember { mutableStateOf(listOf<TextOverlay>()) }
     var selectedTextId by remember { mutableStateOf<String?>(null) }
     var showTextInputDialog by remember { mutableStateOf(false) }
@@ -92,7 +92,7 @@ fun ModernImageEditDialog(
             shadowElevation = 16.dp
         ) {
             Box {
-                // 背景グラデーション
+                // Background gradient
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -110,21 +110,21 @@ fun ModernImageEditDialog(
                 Column(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    // モダンなトップバー
+                    // Modern top bar
                     TopAppBar(
                         title = { 
                             Row(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    "画像を編集",
+                                    "Edit Image",
                                     style = MaterialTheme.typography.titleLarge
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 AnimatedChip(
                                     selected = true,
                                     onClick = {},
-                                    label = "編集中",
+                                    label = "Editing",
                                     modifier = Modifier.height(32.dp)
                                 )
                             }
@@ -136,7 +136,7 @@ fun ModernImageEditDialog(
                                 icon = {
                                     Icon(
                                         Icons.Default.Close,
-                                        contentDescription = "閉じる",
+                                        contentDescription = "Close",
                                         modifier = Modifier.size(24.dp)
                                     )
                                 }
@@ -145,12 +145,12 @@ fun ModernImageEditDialog(
                         actions = {
                             GradientButton(
                                 onClick = {
-                                    // テキストを画像に統合して保存
+                                    // Integrate text into image and save
                                     val finalBitmap = mergeTextOverlays(editedBitmap, textOverlays, density.density, fontScale)
                                     onSave(finalBitmap)
                                     onDismiss()
                                 },
-                                text = "保存",
+                                text = "Save",
                                 modifier = Modifier.padding(end = 8.dp)
                             )
                         },
@@ -159,14 +159,14 @@ fun ModernImageEditDialog(
                         )
                     )
 
-                    // ツールバー
+                    // Toolbar
                     GlassmorphicCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         Column {
-                            // ツールボタン
+                            // Tool buttons
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -175,7 +175,7 @@ fun ModernImageEditDialog(
                             ) {
                                 ToolButton(
                                     icon = Icons.Default.Edit,
-                                    label = "ペン",
+                                    label = "Pen",
                                     isSelected = isDrawingMode && !isEraserMode && !isTextMode,
                                     onClick = {
                                         isDrawingMode = true
@@ -185,7 +185,7 @@ fun ModernImageEditDialog(
                                 )
                                 ToolButton(
                                     icon = Icons.Default.Clear,
-                                    label = "消しゴム",
+                                    label = "Eraser",
                                     isSelected = isEraserMode,
                                     onClick = {
                                         isDrawingMode = true
@@ -195,7 +195,7 @@ fun ModernImageEditDialog(
                                 )
                                 ToolButton(
                                     icon = Icons.Default.TextFields,
-                                    label = "テキスト",
+                                    label = "Text",
                                     isSelected = isTextMode,
                                     onClick = {
                                         isTextMode = true
@@ -206,7 +206,7 @@ fun ModernImageEditDialog(
                                 )
                                 ToolButton(
                                     icon = Icons.Default.Palette,
-                                    label = "カラー",
+                                    label = "Color",
                                     isSelected = showColorPicker,
                                     onClick = {
                                         showColorPicker = !showColorPicker
@@ -214,7 +214,7 @@ fun ModernImageEditDialog(
                                 )
                             }
 
-                            // カラーピッカー
+                            // Color picker
                             AnimatedVisibility(
                                 visible = showColorPicker,
                                 enter = expandVertically() + fadeIn(),
@@ -236,7 +236,7 @@ fun ModernImageEditDialog(
                                 }
                             }
 
-                            // ブラシサイズスライダー
+                            // Brush size slider
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -267,7 +267,7 @@ fun ModernImageEditDialog(
                         }
                     }
 
-                    // 画像エディター
+                    // Image editor
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -281,7 +281,7 @@ fun ModernImageEditDialog(
                                 val boxWidth = constraints.maxWidth.toFloat()
                                 val boxHeight = constraints.maxHeight.toFloat()
                                 
-                                // 画像のスケールとオフセットを計算
+                                // Calculate image scale and offset
                                 val bitmapWidth = editedBitmap.width.toFloat()
                                 val bitmapHeight = editedBitmap.height.toFloat()
                                 val imageScale = minOf(
@@ -293,7 +293,7 @@ fun ModernImageEditDialog(
                                 val imageOffsetX = (boxWidth - scaledImageWidth) / 2
                                 val imageOffsetY = (boxHeight - scaledImageHeight) / 2
                                 
-                                // 画像描画レイヤー
+                                // Image drawing layer
                                 DrawableImageView(
                                     bitmap = editedBitmap,
                                     isDrawingEnabled = isDrawingMode && !isTextMode,
@@ -304,9 +304,9 @@ fun ModernImageEditDialog(
                                     modifier = Modifier.fillMaxSize()
                                 )
                                 
-                                // テキストオーバーレイレイヤー
+                                // Text overlay layer
                                 textOverlays.forEach { overlay ->
-                                    // ビットマップ座標系から表示座標系への変換
+                                    // Convert from bitmap coordinates to display coordinates
                                     val displayPosition = Offset(
                                         imageOffsetX + overlay.position.x * imageScale,
                                         imageOffsetY + overlay.position.y * imageScale
@@ -326,7 +326,7 @@ fun ModernImageEditDialog(
                                         imageScale = imageScale,
                                         imageOffset = Offset(imageOffsetX, imageOffsetY),
                                         onMove = { id, newPosition ->
-                                            // 表示座標系からビットマップ座標系への変換
+                                            // Convert from display coordinates to bitmap coordinates
                                             val bitmapPosition = Offset(
                                                 (newPosition.x - imageOffsetX) / imageScale,
                                                 (newPosition.y - imageOffsetY) / imageScale
@@ -336,7 +336,7 @@ fun ModernImageEditDialog(
                                             }
                                         },
                                         onResize = { id, newSize ->
-                                            // 表示サイズからビットマップサイズへの変換
+                                            // Convert from display size to bitmap size
                                             val bitmapSize = IntSize(
                                                 (newSize.width / imageScale).toInt(),
                                                 (newSize.height / imageScale).toInt()
@@ -362,17 +362,17 @@ fun ModernImageEditDialog(
         }
     }
     
-    // テキスト入力ダイアログ
+    // Text input dialog
     if (showTextInputDialog) {
         AlertDialog(
             onDismissRequest = { showTextInputDialog = false },
-            title = { Text("テキストを追加") },
+            title = { Text("Add Text") },
             text = {
                 Column {
                     OutlinedTextField(
                         value = textInput,
                         onValueChange = { textInput = it },
-                        label = { Text("テキスト") },
+                        label = { Text("Text") },
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
                     )
@@ -380,7 +380,7 @@ fun ModernImageEditDialog(
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("サイズ: ")
+                        Text("Size: ")
                         Slider(
                             value = textFontSize,
                             onValueChange = { textFontSize = it },
@@ -397,26 +397,26 @@ fun ModernImageEditDialog(
                         if (textInput.text.isNotEmpty()) {
                             val newOverlay = TextOverlay(
                                 text = textInput.text,
-                                position = Offset(100f, 100f), // ビットマップのピクセル座標
-                                size = IntSize(200, 50), // ビットマップのピクセルサイズ
+                                position = Offset(100f, 100f), // Bitmap pixel coordinates
+                                size = IntSize(200, 50), // Bitmap pixel size
                                 fontSize = textFontSize,
                                 color = selectedColor
                             )
                             textOverlays = textOverlays + newOverlay
-                            selectedTextId = newOverlay.id  // 新しく追加したテキストを選択状態にする
+                            selectedTextId = newOverlay.id  // Set newly added text as selected
                             textInput = TextFieldValue("")
                             showTextInputDialog = false
                         }
                     }
                 ) {
-                    Text("追加")
+                    Text("Add")
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showTextInputDialog = false }
                 ) {
-                    Text("キャンセル")
+                    Text("Cancel")
                 }
             }
         )
@@ -519,34 +519,34 @@ private fun ColorButton(
     }
 }
 
-// テキストオーバーレイを画像に統合する関数
+// Function to integrate text overlay into image
 private fun mergeTextOverlays(bitmap: Bitmap, textOverlays: List<TextOverlay>, density: Float, fontScale: Float): Bitmap {
     val resultBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
     val canvas = Canvas(resultBitmap)
     
     textOverlays.forEach { overlay ->
-        // UI上の位置とサイズ（dpで管理）をピクセルに変換
-        val widthPx = overlay.size.width.toFloat() // IntSizeのwidthはすでにピクセル単位
-        val heightPx = overlay.size.height.toFloat() // IntSizeのheightはすでにピクセル単位  
-        val positionXPx = overlay.position.x  // Offsetはピクセル単位
-        val positionYPx = overlay.position.y  // Offsetはピクセル単位
+        // Convert UI position and size (managed in dp) to pixels
+        val widthPx = overlay.size.width.toFloat() // IntSize width is already in pixels
+        val heightPx = overlay.size.height.toFloat() // IntSize height is already in pixels  
+        val positionXPx = overlay.position.x  // Offset is in pixels
+        val positionYPx = overlay.position.y  // Offset is in pixels
         
-        // テキストサイズをボックスサイズに応じて動的に計算（UIと同じロジック）
-        // size.heightはピクセル単位なので、dpに変換してから計算
+        // Dynamically calculate text size based on box size (same logic as UI)
+        // size.height is in pixels, so convert to dp before calculation
         val heightInDp = overlay.size.height.toFloat() / density
         val scaledFontSize = overlay.fontSize * (heightInDp / 50f)
         
         val paint = Paint().apply {
             color = overlay.color.toArgb()
-            // UIではspを使用し、内部で * density * fontScaleされるが、
-            // ここではピクセル単位で直接描画するため同等の計算を行う
+            // UI uses sp and internally multiplies by density * fontScale,
+            // but here we draw directly in pixels so we perform equivalent calculation
             textSize = scaledFontSize * density * fontScale
             isAntiAlias = true
             typeface = Typeface.DEFAULT_BOLD
             textAlign = Paint.Align.CENTER
         }
         
-        // 背景を描画
+        // Draw background
         val bgPaint = Paint().apply {
             color = overlay.backgroundColor.toArgb()
             style = Paint.Style.FILL
@@ -560,7 +560,7 @@ private fun mergeTextOverlays(bitmap: Bitmap, textOverlays: List<TextOverlay>, d
         )
         canvas.drawRoundRect(rect, 8f * density, 8f * density, bgPaint)
         
-        // テキストを中央に描画
+        // Draw text centered
         val textX = positionXPx + widthPx / 2
         val textY = positionYPx + heightPx / 2 + (paint.descent() - paint.ascent()) / 2 - paint.descent()
         
@@ -575,7 +575,7 @@ private fun mergeTextOverlays(bitmap: Bitmap, textOverlays: List<TextOverlay>, d
     return resultBitmap
 }
 
-// テキストオーバーレイアイテムコンポーネント
+// Text overlay item component
 @Composable
 private fun TextOverlayItem(
     textOverlay: TextOverlay,
@@ -642,8 +642,8 @@ private fun TextOverlayItem(
                     .padding(8.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // テキストサイズをボックスサイズに応じて動的に計算
-                // size.heightはピクセル単位なので、dpに変換してから計算
+                // Dynamically calculate text size based on box size
+                // size.height is in pixels, so convert to dp before calculation
                 val heightInDp = size.height.toFloat() / density
                 val scaledFontSize = (textOverlay.fontSize * (heightInDp / 50f)).sp
                 Text(
@@ -655,7 +655,7 @@ private fun TextOverlayItem(
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
                 
-                // 削除ボタン（選択時のみ表示）
+                // Delete button (only shown when selected)
                 if (isSelected && isEditMode) {
                     IconButton(
                         onClick = { onDelete(textOverlay.id) },
@@ -665,14 +665,14 @@ private fun TextOverlayItem(
                     ) {
                         Icon(
                             Icons.Default.Close,
-                            contentDescription = "削除",
+                            contentDescription = "Delete",
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(16.dp)
                         )
                     }
                 }
                 
-                // リサイズハンドル（選択時のみ表示）
+                // Resize handle (only shown when selected)
                 if (isSelected && isEditMode) {
                     Box(
                         modifier = Modifier

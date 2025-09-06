@@ -46,31 +46,31 @@ fun TimelineSlider(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // タイムラインヘッダー
+        // Timeline header
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "タイムライン",
+                text = "Timeline",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "${currentPosition}/${maxSeconds}秒",
+                text = "${currentPosition}/${maxSeconds}s",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary
             )
         }
         
-        // スライダーとマーカー
+        // Slider and markers
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(80.dp)
         ) {
-            // スライダー本体
+            // Main slider
             Slider(
                 value = currentPosition.toFloat(),
                 onValueChange = { onPositionChange(it.roundToInt()) },
@@ -86,7 +86,7 @@ fun TimelineSlider(
                 )
             )
             
-            // 画像マーカー
+            // Image markers
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -126,7 +126,7 @@ fun TimelineSlider(
             }
         }
         
-        // 秒数インジケーター
+        // Second indicators
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -143,12 +143,12 @@ fun TimelineSlider(
         }
     }
     
-    // 削除確認ダイアログ
+    // Delete confirmation dialog
     showDeleteDialog?.let { timestamp ->
         AlertDialog(
             onDismissRequest = { showDeleteDialog = null },
-            title = { Text("画像を削除") },
-            text = { Text("${timestamp}秒の画像を削除しますか？") },
+            title = { Text("Delete Image") },
+            text = { Text("Delete image at ${timestamp}s?") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -156,12 +156,12 @@ fun TimelineSlider(
                         showDeleteDialog = null
                     }
                 ) {
-                    Text("削除", color = MaterialTheme.colorScheme.error)
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = null }) {
-                    Text("キャンセル")
+                    Text("Cancel")
                 }
             }
         )
@@ -232,7 +232,7 @@ private fun TimelineMarker(
             contentScale = ContentScale.Crop
         )
         
-        // タイムスタンプバッジ
+        // Timestamp badge
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -281,22 +281,22 @@ fun TimelineControls(
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // メインコントロール
+            // Main controls
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // リセットボタン
+                // Reset button
                 IconButton(onClick = onReset) {
                     Icon(
                         Icons.Default.SkipPrevious,
-                        contentDescription = "リセット",
+                        contentDescription = "Reset",
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 
-                // 再生/一時停止ボタン
+                // Play/pause button
                 FilledIconButton(
                     onClick = onPlayPause,
                     modifier = Modifier.size(56.dp),
@@ -304,19 +304,19 @@ fun TimelineControls(
                 ) {
                     Icon(
                         if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) "一時停止" else "再生",
+                        contentDescription = if (isPlaying) "Pause" else "Play",
                         modifier = Modifier.size(32.dp)
                     )
                 }
                 
-                // ループボタン
+                // Loop button
                 IconToggleButton(
                     checked = isLooping,
                     onCheckedChange = { onLoop() }
                 ) {
                     Icon(
                         Icons.Default.Loop,
-                        contentDescription = "ループ",
+                        contentDescription = "Loop",
                         tint = if (isLooping) 
                             MaterialTheme.colorScheme.primary 
                         else 
@@ -325,14 +325,14 @@ fun TimelineControls(
                 }
             }
             
-            // 再生速度コントロール
+            // Playback speed control
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "速度:",
+                    text = "Speed:",
                     style = MaterialTheme.typography.bodySmall
                 )
                 listOf(0.5f to "0.5x", 1f to "1x", 2f to "2x").forEach { (speed, label) ->
@@ -350,7 +350,7 @@ fun TimelineControls(
                 }
             }
             
-            // クリアボタン
+            // Clear button
             if (hasImages) {
                 Divider(modifier = Modifier.padding(vertical = 4.dp))
                 OutlinedButton(
@@ -367,7 +367,7 @@ fun TimelineControls(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("タイムラインをクリア", style = MaterialTheme.typography.labelMedium)
+                    Text("Clear Timeline", style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
