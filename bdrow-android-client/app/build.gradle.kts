@@ -14,16 +14,6 @@ if (versionPropsFile.exists()) {
     versionProps.load(FileInputStream(versionPropsFile))
 }
 
-// Use Git commit count as additional version info if available
-val gitCommitCount = try {
-    val process = ProcessBuilder("git", "rev-list", "--count", "HEAD")
-        .directory(rootProject.projectDir)
-        .start()
-    process.inputStream.bufferedReader().readText().trim().toIntOrNull() ?: 0
-} catch (e: Exception) {
-    0
-}
-
 android {
     namespace = "com.example.bdrowclient"
     compileSdk = 34
@@ -33,7 +23,7 @@ android {
         minSdk = 24
         targetSdk = 34
         // Read from version.properties or use defaults
-        versionCode = (versionProps.getProperty("VERSION_CODE", "1").toIntOrNull() ?: 1) + gitCommitCount
+        versionCode = versionProps.getProperty("VERSION_CODE", "1").toIntOrNull() ?: 1
         versionName = versionProps.getProperty("VERSION_NAME", "1.0.0")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
