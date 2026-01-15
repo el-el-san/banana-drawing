@@ -29,7 +29,6 @@ class GeminiRepository(private val context: Context) {
         private const val MODEL_TEXT = "gemini-2.5-flash-lite"
         private const val MODEL_IMAGE = "gemini-2.5-flash-lite"
         private const val MODEL_IMAGE_GENERATION = "gemini-3-pro-image-preview"
-        private const val MODEL_PROMPT_ENHANCER = "gemini-2.5-flash-lite"
     }
     
     fun isAuthenticated(): Boolean {
@@ -106,68 +105,16 @@ class GeminiRepository(private val context: Context) {
             )
         }
     }
-    
-    private suspend fun translateToEnglish(
-        originalPrompt: String,
-        apiKey: String
-    ): String {
-        return try {
-            val request = GeminiRequest(
-                model = MODEL_PROMPT_ENHANCER,
-                contents = listOf(
-                    Content(
-                        role = "user",
-                        parts = listOf(
-                            Part(text = """
-                                Translate the following text to English.
-                                If it's already in English, return it as is.
-                                
-                                Text: "$originalPrompt"
-                                
-                                Rules:
-                                - Output ONLY the English translation
-                                - Do not add any explanations
-                                - Do not use quotes around the output
-                                - Keep the translation simple and direct
-                            """.trimIndent())
-                        )
-                    )
-                )
-            )
-            
-            android.util.Log.d("GeminiRepo", "Translating prompt: $originalPrompt")
-            val response = geminiService.generateContent(MODEL_PROMPT_ENHANCER, apiKey, request)
-            
-            if (response.candidates?.isNotEmpty() == true) {
-                val translatedPrompt = response.candidates[0].content?.parts?.firstOrNull()?.text?.trim()
-                android.util.Log.d("GeminiRepo", "Translated prompt: $translatedPrompt")
-                translatedPrompt ?: originalPrompt
-            } else {
-                originalPrompt
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("GeminiRepo", "Failed to translate prompt", e)
-            originalPrompt
-        }
-    }
-    
+
     private suspend fun processMultipleImagesWithTextEnhanced(
         images: List<Bitmap>,
         text: String,
         apiKey: String
     ): ProcessResult {
         val debugBuilder = StringBuilder()
-        debugBuilder.appendLine("[Two-Stage Processing]")
-        debugBuilder.appendLine("Original prompt: $text")
-        
-        // Stage 1: Translate to English
-        val translatedPrompt = translateToEnglish(text, apiKey)
-        debugBuilder.appendLine("Translated prompt: $translatedPrompt")
-        
-        // Stage 2: Generate image with translated prompt
-        val imageGenerationPrompt = "generate image $translatedPrompt"
-        debugBuilder.appendLine("Final prompt: $imageGenerationPrompt")
-        
+        debugBuilder.appendLine("[Image Generation - Gemini 3 Pro]")
+        debugBuilder.appendLine("Prompt: $text")
+
         return try {
             // Convert all bitmaps to base64
             val imageParts = images.map { bitmap ->
@@ -176,10 +123,10 @@ class GeminiRepository(private val context: Context) {
                     data = bitmapToBase64(bitmap)
                 ))
             }
-            
+
             // Combine text and all images in parts
             val allParts = mutableListOf<Part>()
-            allParts.add(Part(text = imageGenerationPrompt))
+            allParts.add(Part(text = text))
             allParts.addAll(imageParts)
             
             val request = GeminiRequest(
@@ -235,7 +182,7 @@ class GeminiRepository(private val context: Context) {
                 }
                 
                 val resultText = when {
-                    generatedImage != null -> "Image generated successfully\nOriginal prompt: $text\nEnglish: $translatedPrompt"
+                    generatedImage != null -> "Image generated successfully\nPrompt: $text"
                     responseText != null -> responseText
                     else -> "Processing completed"
                 }
