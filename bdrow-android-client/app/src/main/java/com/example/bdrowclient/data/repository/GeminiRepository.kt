@@ -28,7 +28,7 @@ class GeminiRepository(private val context: Context) {
     companion object {
         private const val MODEL_TEXT = "gemini-2.5-flash-lite"
         private const val MODEL_IMAGE = "gemini-2.5-flash-lite"
-        private const val MODEL_IMAGE_GENERATION = "gemini-2.5-flash-image-preview"
+        private const val MODEL_IMAGE_GENERATION = "gemini-3-pro-image-preview"
         private const val MODEL_PROMPT_ENHANCER = "gemini-2.5-flash-lite"
     }
     
@@ -195,7 +195,8 @@ class GeminiRepository(private val context: Context) {
                     temperature = 1.0f,
                     topK = 40,
                     topP = 0.95f,
-                    maxOutputTokens = 8192
+                    maxOutputTokens = 8192,
+                    imageConfig = ImageConfig(imageSize = "1K")
                 )
             )
             
@@ -495,10 +496,11 @@ class GeminiRepository(private val context: Context) {
                 temperature = 1.0f,
                 topK = 40,
                 topP = 0.95f,
-                maxOutputTokens = 8192
+                maxOutputTokens = 8192,
+                imageConfig = ImageConfig(imageSize = "1K")
             )
         )
-        
+
         try {
             android.util.Log.d("GeminiRepo", "Requesting image generation: $prompt")
             val response = geminiService.generateContent(MODEL_IMAGE_GENERATION, apiKey, request)

@@ -29,7 +29,12 @@ data class GenerationConfig(
     val temperature: Float? = null,
     val topK: Int? = null,
     val topP: Float? = null,
-    val maxOutputTokens: Int? = null
+    val maxOutputTokens: Int? = null,
+    val imageConfig: ImageConfig? = null
+)
+
+data class ImageConfig(
+    val imageSize: String? = null  // "1K", "2K", etc.
 )
 
 // Response models
